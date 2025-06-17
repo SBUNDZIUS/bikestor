@@ -20,23 +20,7 @@ CREATE TABLE staffs (
     phone       VARCHAR2(20),
     active      NUMBER(1),
     store_id    NUMBER,
-    manager_id  NUMBER,
-    FOREIGN KEY (store_id) REFERENCES stores(store_id),
-    FOREIGN KEY (manager_id) REFERENCES staffs(staff_id)
-);
-
-CREATE TABLE orders (
-    order_id       NUMBER PRIMARY KEY,
-    customer_id    NUMBER,
-    order_status   NUMBER(1),
-    order_date     DATE,
-    required_date  DATE,
-    shipped_date   DATE,
-    store_id       NUMBER,
-    staff_id       NUMBER,
-    FOREIGN KEY (customer_id) REFERENCES customers(customer_id),
-    FOREIGN KEY (store_id) REFERENCES stores(store_id),
-    FOREIGN KEY (staff_id) REFERENCES staffs(staff_id)
+    manager_id  NUMBER
 );
 
 CREATE TABLE stores (
@@ -50,6 +34,19 @@ CREATE TABLE stores (
     zip_code    VARCHAR2(10)
 );
 
+CREATE TABLE orders (
+    order_id       NUMBER PRIMARY KEY,
+    customer_id    NUMBER,
+    order_status   NUMBER(1),
+    order_date     DATE,
+    required_date  DATE,
+    shipped_date   DATE,
+    store_id       NUMBER,
+    staff_id       NUMBER
+);
+
+
+
 CREATE TABLE order_items (
     order_id    NUMBER,
     item_id     NUMBER,
@@ -57,9 +54,7 @@ CREATE TABLE order_items (
     quantity    NUMBER,
     list_price  NUMBER(10,2),
     discount    NUMBER(5,2),
-    PRIMARY KEY (order_id, item_id),
-    FOREIGN KEY (order_id) REFERENCES orders(order_id),
-    FOREIGN KEY (product_id) REFERENCES products(product_id)
+    PRIMARY KEY (order_id, item_id)
 );
 
 CREATE TABLE categories (
@@ -67,47 +62,43 @@ CREATE TABLE categories (
     category_name  VARCHAR2(50)
 );
 
+select * from categories
+
 CREATE TABLE products (
     product_id    NUMBER PRIMARY KEY,
     product_name  VARCHAR2(100),
     brand_id      NUMBER,
     category_id   NUMBER,
     model_year    NUMBER(4),
-    list_price    NUMBER(10,2),
-    FOREIGN KEY (category_id) REFERENCES categories(category_id)
+    list_price    NUMBER(10,2)
 );
 
 CREATE TABLE stocks (
     store_id    NUMBER,
     product_id  NUMBER,
-    quantity    NUMBER,
-    PRIMARY KEY (store_id, product_id),
-    FOREIGN KEY (store_id) REFERENCES stores(store_id),
-    FOREIGN KEY (product_id) REFERENCES products(product_id)
+    quantity    NUMBER
 );
 
 CREATE TABLE brands (
     brand_id    NUMBER PRIMARY KEY,
     brand_name  VARCHAR2(100)
 );
-
---Listar todos Clientes que não tenham realizado uma compra;
+--------------------------------------------------------------------------------------------------Listar todos Clientes que não tenham realizado uma compra;
 
 SELECT C.CUSTOMER_ID, C.FIRST_NAME, C.LAST_NAME, C.EMAIL, C.PHONE, C.CITY, C.STATE 
 FROM CUSTOMERS C
-LEFT JOIN
-ORDERS O ON C.CUSTOMERS.ID = O.CUSTOMER_ID
+LEFT JOIN ORDERS O ON C.CUSTOMER_ID = O.CUSTOMER_ID
 WHERE O.ORDER_ID IS NULL;
 
 --Listar os Produtos que não tenham sido comprados
 
-SELECT P.PRODUCT_ID, P.PRODUCT_NAME, P.LIST_PRICE, C.CATEGORY_NAME
+SELECT P.PRODUCT_ID, P.PRODUCT_NAME, P.LIST_PRICE, c.category_name
 FROM PRODUCTS P
 LEFT JOIN
-ORDERS_ITEMS OI ON P.PRODUCT_ID = OI.PRODUCT_ID
+ ORDER_ITEMS OI ON P.PRODUCT_ID = OI.PRODUCT_ID
 LEFT JOIN
 CATEGORIES C ON P.CATEGORY_ID = C.CATEGORY_ID
-WHERE OI.PRODUCT_ID IS NULL
+WHERE OI.PRODUCT_ID IS NULL;
 
 --Listar os Produtos sem Estoque;
 
@@ -117,15 +108,15 @@ LEFT JOIN
 STOCKS S ON P.PRODUCT_ID = S.PRODUCT_ID
 LEFT JOIN
 CATEGORIES C ON P.CATEGORY_ID = C.CATEGORY_ID
-GROUP BY P.PRODUC_ID, P.PRODUCT_NAME, P.LIST_PRICE, C.CATEGORY_NAME
+GROUP BY P.PRODUCT_ID, P.PRODUCT_NAME, P.LIST_PRICE, C.CATEGORY_NAME
 HAVING SUM(NVL(S.QUANTITY,0)) =0;
 
 --Agrupar a quantidade de vendas que uma determinada Marca por Loja.
 
 SELECT P.BRAND_ID, O.STORE_ID, SUM(OI.QUANTITY) AS TOTAL_VEN
-FROM ORDERS_ITEMS OI
+FROM ORDER_ITEMS OI
 JOIN PRODUCTS P ON OI.PRODUCT_ID = P.PRODUCT_ID
-JOIN ORDERS O ON OI.OERDER_ID = O.ORDER_ID
+JOIN ORDERS O ON OI.ORDER_ID = O.ORDER_ID
 GROUP BY P.BRAND_ID, O.STORE_ID
 ORDER BY P.BRAND_ID, O.STORE_ID;
 
@@ -135,4 +126,3 @@ SELECT S.STAFF_ID, S.FIRST_NAME, S.LAST_NAME, S.EMAIL, S.PHONE
 FROM STAFFS S
 LEFT JOIN ORDERS O ON S.STAFF_ID = O.STAFF_ID
 WHERE O.ORDER_ID IS NULL;
-
