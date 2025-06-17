@@ -1,2 +1,15 @@
-Meus selects
+Construir as seguintes consultas:
 
+Listar todos Clientes que não tenham realizado uma compra;
+
+SELECT C.CUSTOMER_ID, C.FIRST_NAME, C.LAST_NAME, C.EMAIL, C.PHONE, C.CITY, C.STATE 
+FROM CUSTOMERS C
+LEFT JOIN
+ORDERS O ON C.CUSTOMERS.ID = O.CUSTOMER_ID
+WHERE O.ORDER_ID IS NULL;
+
+Listar os Produtos que não tenham sido comprados
+
+Listar os Produtos sem Estoque;
+Agrupar a quantidade de vendas que uma determinada Marca por Loja.
+Listar os Funcionarios que não estejam relacionados a um Pedido.
